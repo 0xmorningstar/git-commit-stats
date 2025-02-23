@@ -1,4 +1,5 @@
 const { execSync } = require('child_process');
+const { calculateStats, printStats } = require('./stats');
 
 function getGitLog() {
   try {
@@ -19,7 +20,8 @@ function parseCommits(logs) {
   });
 }
 
-// test
+// main
 const logs = getGitLog();
 const commits = parseCommits(logs);
-console.log(`Found ${commits.length} commits`);
+const stats = calculateStats(commits);
+printStats(stats);
