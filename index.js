@@ -3,6 +3,7 @@
 const { execSync } = require('child_process');
 const { program } = require('commander');
 const { calculateStats, printStats } = require('./stats');
+const { exportToJSON, exportToCSV } = require('./export');
 
 function getGitLog(path = '.', options = {}) {
   try {
@@ -37,11 +38,22 @@ program
   .argument('[path]', 'path to git repository', '.')
   .option('-s, --since <date>', 'show commits more recent than date')
   .option('-u, --until <date>', 'show commits older than date')
+  .option('--json <filename>', 'export stats to JSON file')
+  .option('--csv <filename>', 'export commits to CSV file')
   .action((path, options) => {
     const logs = getGitLog(path, options);
     const commits = parseCommits(logs);
     const stats = calculateStats(commits);
-    printStats(stats);
+
+    if (options.json) {
+      exportToJSON(stats, options.json);
+    }
+    if (options.csv) {
+      exportToCSV(commits, options.csv);
+    }
+    if (!options.json && !options.csv) {
+      printStats(stats);
+    }
   });
 
 program.parse();
