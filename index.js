@@ -4,6 +4,7 @@ const { execSync } = require('child_process');
 const { program } = require('commander');
 const { calculateStats, printStats } = require('./stats');
 const { exportToJSON, exportToCSV } = require('./export');
+const { validatePath } = require('./utils');
 
 function getGitLog(path = '.', options = {}) {
   try {
@@ -41,18 +42,30 @@ program
   .option('--json <filename>', 'export stats to JSON file')
   .option('--csv <filename>', 'export commits to CSV file')
   .action((path, options) => {
-    const logs = getGitLog(path, options);
-    const commits = parseCommits(logs);
-    const stats = calculateStats(commits);
+    try {
+      validatePath(path);
 
-    if (options.json) {
-      exportToJSON(stats, options.json);
-    }
-    if (options.csv) {
-      exportToCSV(commits, options.csv);
-    }
-    if (!options.json && !options.csv) {
-      printStats(stats);
+      const logs = getGitLog(path, options);
+      if (logs.length === 0) {
+        console.log('No commits found');
+        return;
+      }
+
+      const commits = parseCommits(logs);
+      const stats = calculateStats(commits);
+
+      if (options.json) {
+        exportToJSON(stats, options.json);
+      }
+      if (options.csv) {
+        exportToCSV(commits, options.csv);
+      }
+      if (!options.json && !options.csv) {
+        printStats(stats);
+      }
+    } catch (err) {
+      console.error('Error:', err.message);
+      process.exit(1);
     }
   });
 
